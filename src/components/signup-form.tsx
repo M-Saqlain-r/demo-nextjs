@@ -1,42 +1,45 @@
 "use client"
-import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
-  const router = useRouter()
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 
-  const login = (event: React.FormEvent) => {
-    event.preventDefault()
+export function SignupForm({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  const router = useRouter();
 
-    const inputEmail = (document.getElementById('email') as HTMLInputElement).value
-    const inputPassword = (document.getElementById('password') as HTMLInputElement).value
+  const signup = (event: React.FormEvent) => {
+    event.preventDefault();
 
-    const storedEmail = localStorage.getItem("email")
-    const storedPassword = localStorage.getItem("password")
+    const email = (document.getElementById('email') as HTMLInputElement).value;
+    const password = (document.getElementById('password') as HTMLInputElement).value;
+    const password1 = (document.getElementById('password1') as HTMLInputElement).value;
 
-    if (inputEmail === storedEmail && inputPassword === storedPassword) {
-      // Valid login
-      localStorage.setItem("isLoggedIn", "true") // ✅ Track login state
-      router.push("/dashboard")
+    if (password === password1) {
+      localStorage.setItem('email', email);
+      localStorage.setItem('password', password);
+      router.push("/login"); // ✅ This will now work
     } else {
-      alert("Invalid email or password.")
+      alert("Passwords do not match!");
     }
-  }
+  };
 
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <form onSubmit={login} className="p-6 md:p-8">
+          <form className="p-6 md:p-8">
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
-                <h1 className="text-2xl font-bold">Welcome back</h1>
+                <h1 className="text-2xl font-bold">Welcome </h1>
                 <p className="text-muted-foreground text-balance">
-                  Login to your Acme Inc account
+                  Create new account
                 </p>
               </div>
               <div className="grid gap-3">
@@ -51,21 +54,23 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
               <div className="grid gap-3">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
-                  <a
-                    href="#"
-                    className="ml-auto text-sm underline-offset-2 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
+
                 </div>
                 <Input id="password" type="password" required />
               </div>
-              <Button type="submit" onClick={login} className="w-full">
-                Login
+              <div className="grid gap-3">
+                <div className="flex items-center">
+                  <Label htmlFor="password">Confirm Password</Label>
+
+                </div>
+                <Input id="password1" type="password" required />
+              </div>
+              <Button type="submit" onClick={signup} className="w-full">
+                Signup
               </Button>
               <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
                 <span className="bg-card text-muted-foreground relative z-10 px-2">
-                  Or continue with
+                  Or Sign up with
                 </span>
               </div>
               <div className="grid grid-cols-3 gap-4">
@@ -76,7 +81,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
                       fill="currentColor"
                     />
                   </svg>
-                  <span className="sr-only">Login with Apple</span>
+                  <span className="sr-only">Signup with Apple</span>
                 </Button>
                 <Button variant="outline" type="button" className="w-full">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -85,7 +90,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
                       fill="currentColor"
                     />
                   </svg>
-                  <span className="sr-only">Login with Google</span>
+                  <span className="sr-only">Signup with Google</span>
                 </Button>
                 <Button variant="outline" type="button" className="w-full">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -94,13 +99,13 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
                       fill="currentColor"
                     />
                   </svg>
-                  <span className="sr-only">Login with Meta</span>
+                  <span className="sr-only">Signup with Meta</span>
                 </Button>
               </div>
               <div className="text-center text-sm">
-                Don&apos;t have an account?{" "}
-                <a href="/signup" className="underline underline-offset-4">
-                  Sign up
+                Already have an account?{" "}
+                <a href="/login" className="underline underline-offset-4">
+                  login
                 </a>
               </div>
             </div>
