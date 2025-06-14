@@ -1,14 +1,26 @@
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import { ChartAreaInteractive } from "@/components/chart-area-interactive";
+import { SectionCards } from "@/components/section-cards";
+import  AllUsersTable  from "@/components/data-table";
+
+export default function Page() {
+  // const data = await getSections();
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Button>Click me</Button>
-
-      </main>
-    </div>
+    <>
+      {/* <SiteHeader /> */}
+      <div className="flex flex-1 flex-col">
+        <div className="@container/main flex flex-1 flex-col gap-2">
+          <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+            <SectionCards />
+            <div className="px-4 lg:px-6">
+              <ChartAreaInteractive />
+            </div>
+            <AllUsersTable  />
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
- 
