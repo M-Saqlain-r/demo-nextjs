@@ -1,53 +1,44 @@
 'use client'
 
-import { useRouter } from "next/navigation"
-import { signInWithEmailAndPassword } from "firebase/auth"
-import { auth, db } from "@/lib/firebase"
-import { ref, get } from "firebase/database"
-import { useState } from "react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { signInWithEmailAndPassword } from 'firebase/auth'
+import { auth } from '@/lib/firebase'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
-export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
+export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
   const router = useRouter()
-  const [error, setError] = useState("")
+  const [error, setError] = useState('')
 
   const login = async (event: React.FormEvent) => {
     event.preventDefault()
-    setError("")
+    setError('')
 
-    const inputEmail = (document.getElementById("email") as HTMLInputElement).value
-    const inputPassword = (document.getElementById("password") as HTMLInputElement).value
+    const inputEmail = (document.getElementById('email') as HTMLInputElement).value
+    const inputPassword = (document.getElementById('password') as HTMLInputElement).value
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, inputEmail, inputPassword)
       const user = userCredential.user
 
       if (!user.emailVerified) {
-        localStorage.setItem("email", inputEmail)
-        localStorage.setItem("isLoggedIn", "true")
-        router.push("/")
+        alert('Please verify your email before logging in.')
+        router.push('/')
         return
       }
 
-      const safeEmail = inputEmail.replace(/\./g, "_")
-      const snapshot = await get(ref(db, `users/${safeEmail}`))
-      const userData = snapshot.val()
-
-      localStorage.setItem("auth_user", JSON.stringify(userData))
-      localStorage.setItem("isLoggedIn", "true")
-
-      router.push("/") // Navigate to home or dashboard
+      router.push('/')
     } catch (err: any) {
-      setError(err.message || "Login failed")
+      setError(err.message || 'Login failed')
     }
   }
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
           <form onSubmit={login} className="p-6 md:p-8">
@@ -61,12 +52,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
               {error && <p className="text-sm text-red-600 text-center">{error}</p>}
               <div className="grid gap-3">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Email"
-                  required
-                />
+                <Input id="email" type="email" placeholder="Email" required />
               </div>
               <div className="grid gap-3">
                 <div className="flex items-center">
@@ -88,11 +74,9 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
                   Or continue with
                 </span>
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                {/* Social buttons (Google / Apple / Meta) */}
-              </div>
+              <div className="grid grid-cols-3 gap-4">{/* Social buttons (optional) */}</div>
               <div className="text-center text-sm">
-                Don&apos;t have an account?{" "}
+                Don&apos;t have an account?{' '}
                 <a href="/signup" className="underline underline-offset-4">
                   Sign up
                 </a>
@@ -109,7 +93,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
         </CardContent>
       </Card>
       <div className="text-muted-foreground text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a> and{" "}
+        By clicking continue, you agree to our <a href="#">Terms of Service</a> and{' '}
         <a href="#">Privacy Policy</a>.
       </div>
     </div>

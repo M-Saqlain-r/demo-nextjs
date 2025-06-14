@@ -1,26 +1,29 @@
 'use client'
 
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
-import { ref, set } from "firebase/database"
-import { auth, db } from "@/lib/firebase"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from 'firebase/auth'
+import { ref, set } from 'firebase/database'
+import { auth, db } from '@/lib/firebase'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
-export function SignupForm({ className, ...props }: React.ComponentProps<"div">) {
+export function SignupForm({ className, ...props }: React.ComponentProps<'div'>) {
   const router = useRouter()
-  const [error, setError] = useState("")
+  const [error, setError] = useState('')
 
   const signup = async (event: React.FormEvent) => {
     event.preventDefault()
-    setError("")
+    setError('')
 
-    const inputEmail = (document.getElementById("email") as HTMLInputElement).value
-    const inputPassword = (document.getElementById("password") as HTMLInputElement).value
+    const inputEmail = (document.getElementById('email') as HTMLInputElement).value
+    const inputPassword = (document.getElementById('password') as HTMLInputElement).value
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, inputEmail, inputPassword)
@@ -28,37 +31,25 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
 
       await sendEmailVerification(firebaseUser)
 
-      const safeEmail = inputEmail.replace(/\./g, "_")
+      const safeEmail = inputEmail.replace(/\./g, '_')
       const defaultName = inputEmail.split('@')[0]
-      const defaultAvatar = "/black-car.jpg"
+      const defaultAvatar = '/black-car.jpg'
 
-      // Save user to Realtime Database
       await set(ref(db, `users/${safeEmail}`), {
         name: defaultName,
         email: inputEmail,
         avatar: defaultAvatar,
       })
 
-      const user = {
-        name: defaultName,
-        email: inputEmail,
-        avatar: defaultAvatar,
-      }
-
-      // Save to localStorage
-      localStorage.setItem("auth_user", JSON.stringify(user))
-      localStorage.setItem("isLoggedIn", "true")
-
-      alert("Verification email sent. Please check your inbox.")
-      router.push("/") // or router.push("/verify-email") if you have a page
-
+      alert('Verification email sent. Please check your inbox.')
+      router.push('/')
     } catch (err: any) {
-      setError(err.message || "Signup failed")
+      setError(err.message || 'Signup failed')
     }
   }
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
           <form onSubmit={signup} className="p-6 md:p-8">
@@ -86,11 +77,9 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
                   Or continue with
                 </span>
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                {/* Optional social buttons */}
-              </div>
+              <div className="grid grid-cols-3 gap-4">{/* Social login (optional) */}</div>
               <div className="text-center text-sm">
-                Already have an account?{" "}
+                Already have an account?{' '}
                 <a href="/login" className="underline underline-offset-4">
                   Login
                 </a>
@@ -107,7 +96,7 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
         </CardContent>
       </Card>
       <div className="text-muted-foreground text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-        By signing up, you agree to our <a href="#">Terms of Service</a> and{" "}
+        By signing up, you agree to our <a href="#">Terms of Service</a> and{' '}
         <a href="#">Privacy Policy</a>.
       </div>
     </div>
