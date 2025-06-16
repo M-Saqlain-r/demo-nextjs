@@ -14,7 +14,7 @@ import {
   getDoc,
   arrayUnion,
 } from 'firebase/firestore'
-import { auth, firestore } from '@/lib/firebase'
+import { auth, db } from '@/lib/firebase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -37,7 +37,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
           return
         }
 
-        const docSnap = await getDoc(doc(firestore, 'users', user.uid))
+        const docSnap = await getDoc(doc(db, 'users', user.uid))
         const data = docSnap.exists() ? docSnap.data() : null
 
         if (data?.isLogin) {
@@ -61,7 +61,7 @@ const handleLogin = async (e: React.FormEvent) => {
   try {
     const { user } = await signInWithEmailAndPassword(auth, email, password)
     const now = new Date()
-    const userRef = doc(firestore, 'users', user.uid)
+    const userRef = doc(db, 'users', user.uid)
 
     // Get current login history
     const docSnap = await getDoc(userRef)

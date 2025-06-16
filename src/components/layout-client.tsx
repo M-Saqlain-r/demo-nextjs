@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "./app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 
 export default function LayoutClient({ children }: { children: React.ReactNode }) {
