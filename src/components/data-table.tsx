@@ -2,76 +2,65 @@
 
 import { useEffect, useState } from 'react'
 import { onAuthStateChanged, User } from 'firebase/auth'
-import { ref, get } from 'firebase/database'
-import { auth, db } from '@/lib/firebase'
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from '@/components/ui/card'
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from '@/components/ui/table'
+import { collection, getDocs } from 'firebase/firestore'
+import { auth } from '@/lib/firebase'
+import { getFirestore } from 'firebase/firestore'
 
-interface UserData {
+const firestore = getFirestore()
+
+import {
+  Table, TableBody, TableCell, TableHead,
+  TableHeader, TableRow
+} from '@/components/ui/table'
+import {
+  Card, CardHeader, CardTitle, CardContent
+} from '@/components/ui/card'
+
+// 👇 Your user type
+export interface FirebaseUser {
   uid: string
   email: string
-  createdAt: string
-  lastSignInTime: string
   name?: string
-  avatar?: string
+  lastLogin?: any
+  isLogin?: boolean
 }
 
+// ✅ Exportable function to reuse elsewhere
+export async function getAllUsersFromFirestore(): Promise<FirebaseUser[]> {
+  const snapshot = await getDocs(collection(firestore, 'users'))
+  return snapshot.docs.map(doc => doc.data() as FirebaseUser)
+}
+
+// ✅ Main component
 export default function UserDashboard() {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
-  const [users, setUsers] = useState<UserData[]>([])
+  const [users, setUsers] = useState<FirebaseUser[]>([])
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setCurrentUser(firebaseUser)
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user)
     })
-    return () => unsubscribe()
+    return () => unsub()
   }, [])
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const res = await fetch('/api/all-users')
-      const data = await res.json()
-
-      const enrichedUsers = await Promise.all(
-        data.users.map(async (user: any) => {
-          const safeEmail = user.email.replace(/\./g, '_')
-          const snapshot = await get(ref(db, `users/${safeEmail}`))
-          const profile = snapshot.val() || {}
-
-          return {
-            uid: user.uid,
-            email: user.email,
-            createdAt: user.createdAt,
-            lastSignInTime: user.lastSignInTime,
-            name: profile.name || user.email.split('@')[0],
-            avatar: profile.avatar || '/default-avatar.png',
-          }
-        })
-      )
-
-      setUsers(enrichedUsers)
+      const data = await getAllUsersFromFirestore()
+      setUsers(data)
     }
 
     fetchUsers()
   }, [])
 
-  const sortedUsers = [...users].sort((a, b) => {
-    if (a.uid === currentUser?.uid) return -1
-    if (b.uid === currentUser?.uid) return 1
-    return 0
-  })
+  // ✅ Sort users: isLogin === true first, then currentUser first
+  const sorted = [...users]
+    .sort((a, b) => (b.isLogin ? 1 : 0) - (a.isLogin ? 1 : 0)) // isLogin true first
+    .sort((a, b) => (a.uid === currentUser?.uid ? -1 : b.uid === currentUser?.uid ? 1 : 0)) // currentUser on top
+
+  console.log('isLogin', sorted.map((data) => data.isLogin))
+  console.log('lastLogin', sorted.map((data) =>
+    data.lastLogin?.toDate?.() ? data.lastLogin.toDate().toLocaleString() : '—'
+  ))
 
   return (
     <div className="p-6">
@@ -83,31 +72,33 @@ export default function UserDashboard() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Created At</TableHead>
+                <TableHead>Name</TableHead>
                 <TableHead>Last Login</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedUsers.map((user) => (
-                <TableRow key={user.uid}>
-                  <TableCell className="flex items-center gap-2">
-                    {currentUser?.uid === user.uid && (
-                      <span className="h-2 w-2 rounded-full bg-green-500" />
+              {sorted.map((u) => (
+                <TableRow
+                  key={u.uid}
+                >
+                  <TableCell>
+                    {u.uid === currentUser?.uid && u.isLogin && (
+                      <span className="h-2 w-2 rounded-full bg-blue-500 inline-block" />
                     )}
-                    {user.name}
+                    {/* {u.isLogin && (
+                      <span className="ml-2 px-2 py-0.5 text-xs rounded bg-green-200 text-green-800">
+                        Online
+                      </span>
+                    )} */}
                   </TableCell>
-                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{u.email || '—'}</TableCell>
+                  <TableCell>{u.name || '—'}</TableCell>
                   <TableCell>
-                    {user.createdAt
-                      ? new Date(user.createdAt).toLocaleString()
-                      : 'N/A'}
-                  </TableCell>
-                  <TableCell>
-                    {user.lastSignInTime
-                      ? new Date(user.lastSignInTime).toLocaleString()
-                      : 'N/A'}
+                    {u.lastLogin?.toDate?.()
+                      ? u.lastLogin.toDate().toLocaleString()
+                      : '—'}
                   </TableCell>
                 </TableRow>
               ))}
