@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { onAuthStateChanged, User } from 'firebase/auth'
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, onSnapshot } from 'firebase/firestore'
 import { auth } from '@/lib/firebase'
 import { getFirestore } from 'firebase/firestore'
 
@@ -16,7 +16,6 @@ import {
   Card, CardHeader, CardTitle, CardContent
 } from '@/components/ui/card'
 
-// 👇 Your user type
 export interface FirebaseUser {
   uid: string
   email: string
@@ -25,17 +24,11 @@ export interface FirebaseUser {
   isLogin?: boolean
 }
 
-// ✅ Exportable function to reuse elsewhere
-export async function getAllUsersFromFirestore(): Promise<FirebaseUser[]> {
-  const snapshot = await getDocs(collection(firestore, 'users'))
-  return snapshot.docs.map(doc => doc.data() as FirebaseUser)
-}
-
-// ✅ Main component
 export default function UserDashboard() {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [users, setUsers] = useState<FirebaseUser[]>([])
 
+  // Track the currently authenticated user
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user)
@@ -43,24 +36,20 @@ export default function UserDashboard() {
     return () => unsub()
   }, [])
 
+  // Real-time Firestore listener for 'users' collection
   useEffect(() => {
-    const fetchUsers = async () => {
-      const data = await getAllUsersFromFirestore()
+    const unsubscribe = onSnapshot(collection(firestore, 'users'), (snapshot) => {
+      const data = snapshot.docs.map(doc => doc.data() as FirebaseUser)
       setUsers(data)
-    }
+    })
 
-    fetchUsers()
+    return () => unsubscribe()
   }, [])
 
-  // ✅ Sort users: isLogin === true first, then currentUser first
+  // Sort: isLogin === true first, then currentUser first
   const sorted = [...users]
-    .sort((a, b) => (b.isLogin ? 1 : 0) - (a.isLogin ? 1 : 0)) // isLogin true first
-    .sort((a, b) => (a.uid === currentUser?.uid ? -1 : b.uid === currentUser?.uid ? 1 : 0)) // currentUser on top
-
-  console.log('isLogin', sorted.map((data) => data.isLogin))
-  console.log('lastLogin', sorted.map((data) =>
-    data.lastLogin?.toDate?.() ? data.lastLogin.toDate().toLocaleString() : '—'
-  ))
+    .sort((a, b) => (b.isLogin ? 1 : 0) - (a.isLogin ? 1 : 0))
+    .sort((a, b) => (a.uid === currentUser?.uid ? -1 : b.uid === currentUser?.uid ? 1 : 0))
 
   return (
     <div className="p-6">
@@ -80,18 +69,11 @@ export default function UserDashboard() {
             </TableHeader>
             <TableBody>
               {sorted.map((u) => (
-                <TableRow
-                  key={u.uid}
-                >
+                <TableRow key={u.uid}>
                   <TableCell>
-                    {u.uid === currentUser?.uid && u.isLogin && (
-                      <span className="h-2 w-2 rounded-full bg-blue-500 inline-block" />
+                    {u.isLogin && (
+                      <span className="h-2 w-2 rounded-full bg-green-500 inline-block" />
                     )}
-                    {/* {u.isLogin && (
-                      <span className="ml-2 px-2 py-0.5 text-xs rounded bg-green-200 text-green-800">
-                        Online
-                      </span>
-                    )} */}
                   </TableCell>
                   <TableCell>{u.email || '—'}</TableCell>
                   <TableCell>{u.name || '—'}</TableCell>

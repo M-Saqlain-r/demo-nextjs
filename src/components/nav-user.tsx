@@ -142,7 +142,7 @@ export function NavUser() {
                   </div>
                 </DialogTrigger>
 
-                <DialogContent className="!top-14 !right-6 left-auto origin-top-right w-[90%] max-w-sm rounded-lg shadow-lg animate-in fade-in zoom-in-90" style={{ position: 'absolute' }}>
+                <DialogContent className="top-[16%] !right-6 left-auto origin-top-right w-[90%] max-w-sm rounded-lg shadow-lg animate-in fade-in zoom-in-90" style={{ position: 'absolute' }}>
                   <form
                     onSubmit={async (e) => {
                       e.preventDefault()
